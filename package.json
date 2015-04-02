@@ -2,7 +2,7 @@
   "name": "linter-chktex",
   "main": "./lib/init",
   "linter-package": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Linter plugin for LaTeX, using chktex",
   "activationCommands": [],
   "repository": "https://github.com/nscaife/linter-chktex",
