@@ -34,8 +34,11 @@ class LinterChktex extends Linter
 
     # chktex won't actually put newlines in (even with !n format)
     # split these fake newlines into real ones
-    if message.match(/\\n/)?
+    if message? and message.length > 0
       splitMessage = message.replace(/\\n/g, "\n")
+    else
+      # cover case where chktex produces no output on stdout
+      return
 
     super(splitMessage, callback)
 
