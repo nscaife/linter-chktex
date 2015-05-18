@@ -27,7 +27,7 @@ class LinterChktex extends Linter
   constructor: (editor)->
     super(editor)
 
-    atom.config.observe 'linter-chktex.chktexExecutablePath', =>
+    @chktexExecutablePath = atom.config.observe 'linter-chktex.chktexExecutablePath', =>
       @executablePath = atom.config.get 'linter-chktex.chktexExecutablePath'
 
   processMessage: (message, callback) ->
@@ -58,6 +58,6 @@ class LinterChktex extends Linter
     )
 
   destroy: ->
-    atom.config.unobserve 'linter-xmllint.chktexExecutablePath'
+    @chktexExecutablePath.dispose()
 
 module.exports = LinterChktex
