@@ -38,6 +38,7 @@ class LinterChktex extends Linter
       splitMessage = message.replace(/\\n/g, "\n")
     else
       # cover case where chktex produces no output on stdout
+      super('', callback)
       return
 
     super(splitMessage, callback)
