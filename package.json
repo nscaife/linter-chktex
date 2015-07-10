@@ -1,7 +1,6 @@
 {
   "name": "linter-chktex",
   "main": "./lib/init",
-  "linter-package": true,
   "version": "0.3.2",
   "description": "Linter plugin for LaTeX, using chktex",
   "keywords": [
