@@ -10,7 +10,7 @@ module.exports =
   activate: (state) ->
     console.log 'linter-chktex loaded'
     @subscriptions = new CompositeDisposable
-    @subscriptions.add atom.config.observe 'linter-latex.executablePath',
+    @subscriptions.add atom.config.observe 'linter-chktex.executablePath',
       (executablePath) =>
         @executablePath = executablePath
 
@@ -26,16 +26,15 @@ module.exports =
         return new Promise (resolve, reject) =>
           filePath = textEditor.getPath()
           results = []
-          console.log filePath
-          console.log @executablePath
+          cmd = if @executablePath? then @executablePath + "chktex" else "chktex"
           process = new BufferedProcess
-            command: @executablePath
+            command: cmd
             args: [filePath, '-I0', '-wall','-n22','-n30','-e16','-f%l:%c:%d:%k:%n:%m\\n' ]
             stdout: (data) ->
               lines = data.split('\\n')
               lines.pop()
               lines = lines.map (line) -> line.split(':')
-              for line in lines
+              for line in lines when line.length == 6
                 do (line) ->
                   [lineStart, colStart, colLen] = line[0..2].map (entry) ->
                     parseInt(entry,10)
