@@ -1,64 +1,61 @@
-linterPath = atom.packages.getLoadedPackage("linter").path
-Linter = require "#{linterPath}/lib/linter"
-{CompositeDisposable, Range, Point, BufferedProcess} = require 'atom'
+{BufferedProcess, CompositeDisposable} = require 'atom'
 
-class LinterChktex extends Linter
-  # ConfigObserver.includeInto(this)
+module.exports =
+  config:
+    executablePath:
+      default: 'C:\\Program Files (x86)\\texlive\\2015\\bin\\win32\\chktex'
+      type: 'string'
+      title: 'chktex Executable Path'
 
-  # The syntax that the linter handles. May be a string or
-  # list/tuple of strings. Names should be all lowercase.
-  @syntax: 'text.tex.latex'
+  activate: (state) ->
+    console.log 'linter-chktex loaded'
+    @subscriptions = new CompositeDisposable
+    @subscriptions.add atom.config.observe 'linter-latex.executablePath',
+      (executablePath) =>
+        @executablePath = executablePath
 
-  # A string, list, tuple or callable that returns a string, list or tuple,
-  # containing the command line (with arguments) used to lint.
+  deactivate: ->
+    @subscriptions.dispose()
 
-  # TODO: Make error/warning preferences configurable
-  cmd: ['chktex', '-I0', '-wall','-n22','-n30','-e16','-f%l:%c:%d %k %k %n: %m\\n']
-
-  linterName: 'chktex'
-
-  # A regex pattern used to extract information from the executable's output.
-  regex:
-    '^(?<line>\\d+):(?<col>\\d+):(?<colEnd>\\d+) (?:(?<error>Error)|(?<warning>Warning)) (?<message>.+)'
-    #'^.+:(?<line>\\d+):(?<col>\\d+):(?<message>.*)$'
-
-  regexFlags: 'm'
-
-  constructor: (editor)->
-    super(editor)
-
-    @chktexExecutablePath = atom.config.observe 'linter-chktex.chktexExecutablePath', =>
-      @executablePath = atom.config.get 'linter-chktex.chktexExecutablePath'
-
-  processMessage: (message, callback) ->
-
-    # chktex won't actually put newlines in (even with !n format)
-    # split these fake newlines into real ones
-    if message? and message.length > 0
-      splitMessage = message.replace(/\\n/g, "\n")
-    else
-      # cover case where chktex produces no output on stdout
-      super('', callback)
-      return
-
-    super(splitMessage, callback)
-
-
-  computeRange: (match) ->
-
-    # colEnd is just the length of the error starting from col
-    # range is col + colEnd
-    rowStart = parseInt(match.line, 10) - 1
-    rowEnd = rowStart
-    colStart = parseInt(match.col, 10) - 1
-    colEnd = colStart + parseInt(match.colEnd, 10)
-
-    return new Range(
-      [rowStart, colStart],
-      [rowEnd, colEnd]
-    )
-
-  destroy: ->
-    @chktexExecutablePath.dispose()
-
-module.exports = LinterChktex
+  provideLinter: ->
+    provider =
+      grammarScopes: ['text.tex.latex']
+      scope: 'file'
+      lintOnFly: true
+      lint: (textEditor) =>
+        return new Promise (resolve, reject) =>
+          filePath = textEditor.getPath()
+          results = []
+          console.log filePath
+          console.log @executablePath
+          process = new BufferedProcess
+            command: @executablePath
+            args: [filePath, '-I0', '-wall','-n22','-n30','-e16','-f%l:%c:%d:%k:%n:%m\\n' ]
+            stdout: (data) ->
+              lines = data.split('\\n')
+              lines.pop()
+              lines = lines.map (line) -> line.split(':')
+              for line in lines
+                do (line) ->
+                  [lineStart, colStart, colLen] = line[0..2].map (entry) ->
+                    parseInt(entry,10)
+                  result = {
+                    range: [
+                      [lineStart - 1, colStart - 1],
+                      [lineStart - 1, colStart - 1 + colLen]
+                    ]
+                    type: line[3] + " " + line[4]
+                    text: line[5]
+                    filePath: filePath
+                  }
+                  results.push result
+            exit: (code) ->
+              return resolve [] unless code is 0
+              return resolve [] unless results?
+              resolve results
+          process.onWillThrowError ({error,handle}) ->
+            atom.notifications.addError "Failed to run #{@executablePath}",
+              detail: "#{error.message}"
+              dismissable: true
+            handle()
+            resolve []
