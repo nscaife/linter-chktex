@@ -3,7 +3,7 @@
 module.exports =
   config:
     executablePath:
-      default: null
+      default: ""
       type: 'string'
       title: 'chktex Executable Path'
 
