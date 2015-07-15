@@ -3,7 +3,7 @@
 module.exports =
   config:
     executablePath:
-      default: 'C:\\Program Files (x86)\\texlive\\2015\\bin\\win32\\chktex'
+      default: null
       type: 'string'
       title: 'chktex Executable Path'
 
