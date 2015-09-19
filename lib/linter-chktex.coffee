@@ -8,11 +8,13 @@ module.exports =
       title: 'chktex Executable Path'
 
   activate: (state) ->
-    console.log 'linter-chktex loaded'
-    @subscriptions = new CompositeDisposable
-    @subscriptions.add atom.config.observe 'linter-chktex.executablePath',
-      (executablePath) =>
-        @executablePath = executablePath
+    require("atom-package-deps").install("linter-chktex")
+      .then ->
+        console.log 'linter-chktex loaded'
+        @subscriptions = new CompositeDisposable
+        @subscriptions.add atom.config.observe 'linter-chktex.executablePath',
+          (executablePath) =>
+            @executablePath = executablePath
 
   deactivate: ->
     @subscriptions.dispose()
