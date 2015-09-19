@@ -19,7 +19,7 @@ module.exports =
 
   provideLinter: ->
     provider =
-      grammarScopes: ['text.tex.latex']
+      grammarScopes: ['text.tex.latex', 'text.tex.latex.beamer', 'text.tex.latex.memoir']
       scope: 'file'
       lintOnFly: true
       lint: (textEditor) =>
