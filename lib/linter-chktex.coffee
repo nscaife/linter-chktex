@@ -1,4 +1,6 @@
 {BufferedProcess, CompositeDisposable} = require 'atom'
+fs = require 'fs'
+path = require 'path'
 
 module.exports =
   config:
@@ -28,7 +30,13 @@ module.exports =
         return new Promise (resolve, reject) =>
           filePath = textEditor.getPath()
           results = []
-          cmd = if @executablePath? then @executablePath + "chktex" else "chktex"
+          cmd = "chktex"
+          if executablePath?
+            stats = fs.statSync(executablePath)
+            if stats.isDirectory()
+              cmd = path.join(executablePath, "chktex");
+            else if stats.isFile() 
+              cmd = executablePath
           process = new BufferedProcess
             command: cmd
             args: [filePath, '-I0', '-wall','-n22','-n30','-e16','-f%l:%c:%d:%k:%n:%m\\n' ]
