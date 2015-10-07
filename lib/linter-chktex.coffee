@@ -8,6 +8,10 @@ module.exports =
       default: ""
       type: 'string'
       title: 'chktex Executable Path'
+    chktexArgs:
+      default: "-wall -n22 -n30 -e16"
+      type: 'string'
+      title: 'chktex Args'
 
   activate: (state) ->
     require("atom-package-deps").install("linter-chktex")
@@ -17,6 +21,9 @@ module.exports =
         @subscriptions.add atom.config.observe 'linter-chktex.executablePath',
           (executablePath) =>
             @executablePath = executablePath
+        @subscriptions.add atom.config.observe 'linter-chktex.chktexArgs',
+              (chktexArgs) =>
+                @chktexArgs = chktexArgs
 
   deactivate: ->
     @subscriptions.dispose()
@@ -39,7 +46,7 @@ module.exports =
               cmd = executablePath
           process = new BufferedProcess
             command: cmd
-            args: [filePath, '-I0', '-wall','-n22','-n30','-e16','-f%l:%c:%d:%k:%n:%m\\n' ]
+            args: [filePath, '-I0', chktexArgs, '-f%l:%c:%d:%k:%n:%m\\n' ]
             stdout: (data) ->
               lines = data.split('\\n')
               lines.pop()
