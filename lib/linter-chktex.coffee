@@ -30,6 +30,7 @@ module.exports =
 
   provideLinter: ->
     provider =
+      name: 'chktex'
       grammarScopes: ['text.tex.latex', 'text.tex.latex.beamer', 'text.tex.latex.memoir']
       scope: 'file'
       lintOnFly: true
