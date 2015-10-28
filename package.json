@@ -17,7 +17,9 @@
     "atom": ">=0.174.0 <2.0.0"
   },
   "dependencies": {
-    "atom-package-deps": "^2.0.3"
+    "atom-package-deps": "^2.0.3",
+    "atom-linter": "^3.2.0",
+    "xregexp": "^2.0.0"
   },
   "package-deps": [
     "linter"

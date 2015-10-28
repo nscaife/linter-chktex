@@ -1,17 +1,21 @@
-{BufferedProcess, CompositeDisposable} = require 'atom'
+{CompositeDisposable} = require 'atom'
 fs = require 'fs'
 path = require 'path'
+helpers = require 'atom-linter'
+XRegExp = require('xregexp').XRegExp
+
+xcache = new Map
 
 module.exports =
   config:
     executablePath:
-      default: ""
       type: 'string'
-      title: 'chktex Executable Path'
+      default: "chktex"
+      description: 'Path to chktex executable'
     chktexArgs:
-      default: "-wall -n22 -n30 -e16"
-      type: 'string'
-      title: 'chktex Args'
+      type: 'array'
+      default: ["-wall", "-n22", "-n30", "-e16"]
+      description: 'Additional chktex Command Line Arguments'
 
   activate: (state) ->
     require("atom-package-deps").install("linter-chktex")
@@ -20,9 +24,11 @@ module.exports =
         @subscriptions = new CompositeDisposable
         @subscriptions.add atom.config.observe 'linter-chktex.executablePath',
           (executablePath) =>
+            console.log 'observe ' + executablePath
             @executablePath = executablePath
         @subscriptions.add atom.config.observe 'linter-chktex.chktexArgs',
               (chktexArgs) =>
+                console.log 'observe ' + chktexArgs
                 @chktexArgs = chktexArgs
 
   deactivate: ->
@@ -35,44 +41,49 @@ module.exports =
       scope: 'file'
       lintOnFly: true
       lint: (textEditor) =>
-        return new Promise (resolve, reject) =>
-          filePath = textEditor.getPath()
-          results = []
-          cmd = "chktex"
-          if executablePath?
-            stats = fs.statSync(executablePath)
-            if stats.isDirectory()
-              cmd = path.join(executablePath, "chktex");
-            else if stats.isFile() 
-              cmd = executablePath
-          process = new BufferedProcess
-            command: cmd
-            args: [filePath, '-I0', chktexArgs, '-f%l:%c:%d:%k:%n:%m\\n' ]
-            stdout: (data) ->
-              lines = data.split('\\n')
-              lines.pop()
-              lines = lines.map (line) -> line.split(':')
-              for line in lines when line.length == 6
-                do (line) ->
-                  [lineStart, colStart, colLen] = line[0..2].map (entry) ->
-                    parseInt(entry,10)
-                  result = {
-                    range: [
-                      [lineStart - 1, colStart - 1],
-                      [lineStart - 1, colStart - 1 + colLen]
-                    ]
-                    type: line[3] + " " + line[4]
-                    text: line[5]
-                    filePath: filePath
-                  }
-                  results.push result
-            exit: (code) ->
-              return resolve [] unless code is 0
-              return resolve [] unless results?
-              resolve results
-          process.onWillThrowError ({error,handle}) ->
-            atom.notifications.addError "Failed to run #{@executablePath}",
-              detail: "#{error.message}"
-              dismissable: true
-            handle()
-            resolve []
+        return @lintFile textEditor.getPath()
+          .then @parseOutput
+
+  lintFile: (filePath) ->
+    args = [filePath, '-q', '-I0', '-f%f:%l:%c:%d:%k:%n:%m\\n']
+    if chktexArgs
+      for x in chktexArgs
+        args.push x
+    return helpers.exec(executablePath, args, options: {stream: 'stdout'})
+
+  parseOutput: (output, filePath) ->
+    # all chktex will output is the length of the error from starting pos
+    # so we need to do some math to get correct highlighting
+    console.log output
+    rawRegex = '^(?<file>.+):(?<line>.+):(?<colStart>.+):(?<colLength>.+):(?<type>.+):(?<message>.+:.+)$'
+    toReturn = []
+    if xcache.has(rawRegex)
+      regex = xcache.get(rawRegex)
+    else
+      xcache.set(rawRegex, regex = XRegExp(rawRegex))
+    #for line in output.split(/\r?\n/)
+    for line in output.split('\\n')
+      match = XRegExp.exec(line, regex)
+      if match
+        console.log 'file ' + match.file
+        console.log 'line ' + match.line
+        console.log 'colStart ' + match.colStart
+        console.log 'colLength ' + match.colLength
+        console.log 'type ' + match.type
+        console.log 'message ' + match.message
+        lineStart = 0
+        lineStart = parseInt(match.line,10) - 1 if match.line
+        colStart = 0
+        colStart = parseInt(match.colStart,10) - 1 if match.colStart
+        lineEnd = 0
+        lineEnd = parseInt(match.line,10) - 1 if match.line
+        colEnd = 0
+        colEnd = colStart + parseInt(match.colLength,10) if match.colLength
+        toReturn.push(
+          type: match.type,
+          text: match.message,
+          filePath: match.file,
+          range: [[lineStart, colStart], [lineEnd, colEnd]]
+        )
+      console.log toReturn
+    return toReturn
