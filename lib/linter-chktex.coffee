@@ -39,7 +39,7 @@ module.exports =
       name: 'chktex'
       grammarScopes: ['text.tex.latex', 'text.tex.latex.beamer', 'text.tex.latex.memoir']
       scope: 'file'
-      lintOnFly: true
+      lintOnFly: false
       lint: (textEditor) =>
         return @lintFile textEditor.getPath()
           .then @parseOutput
