@@ -65,12 +65,12 @@ module.exports =
     for line in output.split('\\n')
       match = XRegExp.exec(line, regex)
       if match
-        console.log 'file ' + match.file
-        console.log 'line ' + match.line
-        console.log 'colStart ' + match.colStart
-        console.log 'colLength ' + match.colLength
-        console.log 'type ' + match.type
-        console.log 'message ' + match.message
+        # console.log 'file ' + match.file
+        # console.log 'line ' + match.line
+        # console.log 'colStart ' + match.colStart
+        # console.log 'colLength ' + match.colLength
+        # console.log 'type ' + match.type
+        # console.log 'message ' + match.message
         lineStart = 0
         lineStart = parseInt(match.line,10) - 1 if match.line
         colStart = 0
@@ -85,5 +85,5 @@ module.exports =
           filePath: match.file,
           range: [[lineStart, colStart], [lineEnd, colEnd]]
         )
-      console.log toReturn
+      # console.log toReturn
     return toReturn
