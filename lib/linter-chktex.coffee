@@ -55,7 +55,7 @@ module.exports =
     # all chktex will output is the length of the error from starting pos
     # so we need to do some math to get correct highlighting
     console.log output
-    rawRegex = '^(?<file>.+):(?<line>.+):(?<colStart>.+):(?<colLength>.+):(?<type>.+):(?<message>.+:.+)$'
+    rawRegex = '^(?<file>.+):(?<line>[0-9]+):(?<colStart>[0-9]+):(?<colLength>[0-9]+):(?<type>.+):[0-9]+:(?<message>.+)$'
     toReturn = []
     if xcache.has(rawRegex)
       regex = xcache.get(rawRegex)
