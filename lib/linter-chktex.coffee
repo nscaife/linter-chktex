@@ -16,6 +16,11 @@ module.exports =
       type: 'array'
       default: ["-wall", "-n22", "-n30", "-e16"]
       description: 'Additional chktex Command Line Arguments'
+    showId:
+      type: 'boolean'
+      default: false
+      description: 'Display ID of Warning/Error'
+
 
   activate: (state) ->
     require("atom-package-deps").install("linter-chktex")
@@ -30,6 +35,10 @@ module.exports =
               (chktexArgs) =>
                 console.log 'observe ' + chktexArgs
                 @chktexArgs = chktexArgs
+        @subscriptions.add atom.config.observe 'linter-chktex.showId',
+              (showId) =>
+                console.log 'observe ' + showId
+                @showId = showId
 
   deactivate: ->
     @subscriptions.dispose()
@@ -55,7 +64,7 @@ module.exports =
     # all chktex will output is the length of the error from starting pos
     # so we need to do some math to get correct highlighting
     console.log output
-    rawRegex = '^(?<file>.+):(?<line>[0-9]+):(?<colStart>[0-9]+):(?<colLength>[0-9]+):(?<type>.+):[0-9]+:(?<message>.+)$'
+    rawRegex = '^(?<file>.+):(?<line>[0-9]+):(?<colStart>[0-9]+):(?<colLength>[0-9]+):(?<type>.+):(?<id>[0-9]+):(?<message>.+)$'
     toReturn = []
     if xcache.has(rawRegex)
       regex = xcache.get(rawRegex)
@@ -79,9 +88,11 @@ module.exports =
         lineEnd = parseInt(match.line,10) - 1 if match.line
         colEnd = 0
         colEnd = colStart + parseInt(match.colLength,10) if match.colLength
+        message = match.message
+        message = '#' + "0".substr(0,2-match.id.length) + match.id + ' ' + message if showId
         toReturn.push(
           type: match.type,
-          text: match.message,
+          text: message,
           filePath: match.file,
           range: [[lineStart, colStart], [lineEnd, colEnd]]
         )
