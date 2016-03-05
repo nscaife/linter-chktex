@@ -89,7 +89,7 @@ module.exports =
         colEnd = 0
         colEnd = colStart + parseInt(match.colLength,10) if match.colLength
         message = match.message
-        message = '#' + "0".substr(0,2-match.id.length) + match.id + ' ' + message if showId
+        message = '#' + match.id + '  '.substr(0,2-match.id.length) + message if showId
         toReturn.push(
           type: match.type,
           text: message,
