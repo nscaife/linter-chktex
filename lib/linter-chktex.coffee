@@ -89,10 +89,10 @@ module.exports =
         colEnd = 0
         colEnd = colStart + parseInt(match.colLength,10) if match.colLength
         message = match.message
-        message = '#' + match.id + '  '.substr(0,2-match.id.length) + message if showId
+        message = '<span style="width: 2em; text-align: center" class="inline-block highlight-warning">' + match.id + '</span> ' + message if showId
         toReturn.push(
           type: match.type,
-          text: message,
+          html: message,
           filePath: match.file,
           range: [[lineStart, colStart], [lineEnd, colEnd]]
         )
