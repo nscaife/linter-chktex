@@ -46,7 +46,7 @@ module.exports =
   provideLinter: ->
     provider =
       name: 'chktex'
-      grammarScopes: ['text.tex.latex', 'text.tex.latex.beamer', 'text.tex.latex.memoir']
+      grammarScopes: ['text.tex.latex', 'text.tex.latex.beamer', 'text.tex.latex.memoir', 'text.tex.latex.knitr']
       scope: 'file'
       lintOnFly: false
       lint: (textEditor) =>
