@@ -50,8 +50,11 @@ module.exports =
       scope: 'file'
       lintOnFly: false
       lint: (textEditor) =>
-        return @lintFile textEditor.getPath()
-          .then @parseOutput
+        if fs.existsSync(textEditor.getPath())
+          return @lintFile textEditor.getPath()
+            .then @parseOutput
+        console.log 'file does not exist'
+        return []
 
   lintFile: (filePath) ->
     args = [filePath, '-q', '-I0', '-f%f:%l:%c:%d:%k:%n:%m\\n']
