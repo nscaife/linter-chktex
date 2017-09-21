@@ -93,6 +93,7 @@ module.exports =
         colEnd = colStart + parseInt(match.colLength,10) if match.colLength
         message = match.message
         message = '<span style="width: 2em; text-align: center" class="inline-block highlight-warning">' + match.id + '</span> ' + message if showId
+        match.type = 'info' if match.type is 'Message'
         toReturn.push(
           type: match.type,
           html: message,
