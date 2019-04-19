@@ -48,7 +48,7 @@ module.exports =
       name: 'chktex'
       grammarScopes: ['text.tex.latex', 'text.tex.latex.beamer', 'text.tex.latex.memoir', 'text.tex.latex.knitr']
       scope: 'file'
-      lintOnFly: false
+      lintsOnChange: false
       lint: (textEditor) =>
         if fs.existsSync(textEditor.getPath())
           return @lintFile textEditor.getPath()
@@ -91,13 +91,15 @@ module.exports =
         lineEnd = parseInt(match.line,10) - 1 if match.line
         colEnd = 0
         colEnd = colStart + parseInt(match.colLength,10) if match.colLength
-        message = match.message
-        message = '<span style="width: 2em; text-align: center" class="inline-block highlight-warning">' + match.id + '</span> ' + message if showId
-        toReturn.push(
-          type: match.type,
-          html: message,
-          filePath: match.file,
-          range: [[lineStart, colStart], [lineEnd, colEnd]]
-        )
+        message = if showId then 'ID ' + match.id + ': ' + match.message else match.message
+        toReturn.push({
+          severity: match.type.toLowerCase(),
+          location: {
+            file: match.file,
+            position: [[lineStart, colStart], [lineEnd, colEnd]]
+          },
+          description: message,
+          excerpt: message
+        })
       # console.log toReturn
     return toReturn
