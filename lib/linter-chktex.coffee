@@ -57,7 +57,7 @@ module.exports =
         return []
 
   lintFile: (filePath) ->
-    args = [filePath, '-q', '-I0', '-f%f:%l:%c:%d:%k:%n:%m\\n']
+    args = [filePath, '-q', '-I0', '-f%f:%l:%c:%d:%k:%n:%m\\n\\n']
     if chktexArgs
       for x in chktexArgs
         args.push x
@@ -74,7 +74,7 @@ module.exports =
     else
       xcache.set(rawRegex, regex = XRegExp(rawRegex))
     #for line in output.split(/\r?\n/)
-    for line in output.split('\\n')
+    for line in output.split('\\n\\n')
       match = XRegExp.exec(line, regex)
       if match
         # console.log 'file ' + match.file
